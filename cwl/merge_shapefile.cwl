@@ -3,7 +3,7 @@ class: CommandLineTool
 baseCommand: [FishnetVectorFileMerger]
 hints:
   DockerRequirement:
-    dockerPull: logru/fishnet-apps:1.4.0
+    dockerPull: ghcr.io/descartesresearch/fishnet-apps:2.0.0
 requirements:
   InlineJavascriptRequirement: {}
   ResourceRequirement:

@@ -1,5 +1,5 @@
 # Build stage
-ARG BASE_IMAGE=logru/fishnet-deps:latest
+ARG BASE_IMAGE=ghcr.io/descartesresearch/fishnet-deps:latest
 FROM ${BASE_IMAGE} AS build
 COPY . /fishnet
 RUN mkdir -p /fishnet/build
