@@ -109,11 +109,11 @@ cmake ..
 cmake --build . <add custom cmake parameters here>
 ```
 ### Docker
-Pre-built images are also published to Docker Hub, see [docker/](docker/) for the Dockerfiles and build script:
+Pre-built images are also published to the GitHub Container Registry, see [docker/](docker/) for the Dockerfiles and build script:
 | Image | Purpose |
 | --- | --- |
-| [`logru/fishnet-deps`](https://hub.docker.com/r/logru/fishnet-deps) | Build-time dependencies (GDAL, compiler toolchain) |
-| [`logru/fishnet-apps`](https://hub.docker.com/r/logru/fishnet-apps) | The Fishnet binaries, built and ready to run |
+| [`ghcr.io/descartesresearch/fishnet-deps`](https://github.com/DescartesResearch/fishnet/pkgs/container/fishnet-deps) | Build-time dependencies (GDAL, compiler toolchain) |
+| [`ghcr.io/descartesresearch/fishnet-apps`](https://github.com/DescartesResearch/fishnet/pkgs/container/fishnet-apps) | The Fishnet binaries, built and ready to run |
 
 ## CMake Options
 | Name | Description  | Default
