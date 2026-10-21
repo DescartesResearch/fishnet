@@ -8,7 +8,6 @@ doc/
 prod/
 tmp/
 .gitignore
-.gitlab-ci.yml
 .git/
 install.sh
 LICENSE
