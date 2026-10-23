@@ -10,6 +10,7 @@
 - [Fishnet Binaries](#fishnet-binaries)
   - [Installation](#installation)
   - [CMake Options](#cmake-options)
+- [Continuous Integration](#continuous-integration)
 - [Workflows](#workflows)
 
 # Fishnet Library
@@ -125,6 +126,14 @@ FISHNET_TEST_LIB | Build Fishnet test utility library|  ON
 FISHNET_COVERAGE | Enable coverage reporting |  OFF
 FISHNET_COMPILE_TIME_TRACE | Enable compile time tracing|  OFF
 FISHNET_DOCS | Enable documentation generation | OFF
+
+# Continuous Integration
+The [CI pipeline](.github/workflows/ci.yml) builds and tests Fishnet on every push and pull request to `main`. The Docker images are only published afterwards, when the pipeline is triggered manually or a version tag is pushed:
+```shell
+git tag 1.2.3   # must match the VERSION in CMakeLists.txt
+git push origin 1.2.3
+```
+Each publish pushes the images tagged with the project version and `latest`. The documentation is built and deployed to GitHub Pages by a [separate pipeline](.github/workflows/docs.yml).
 
 # Workflows
 Fishnet is already used in existing production workflows.
