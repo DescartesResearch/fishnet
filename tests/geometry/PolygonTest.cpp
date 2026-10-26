@@ -101,6 +101,14 @@ TEST_F(PolygonTest, centroid) {
     EXPECT_EQ(unitSquareWithHoleInLowerHalf.centroid(), Vec2D(0.5,0.75));
 }
 
+TEST_F(PolygonTest, centroidOfSliver) {
+    // building footprint in WGS84 with an area of ~1e-13, below epsilon once multiplied with the centroid
+    auto sliver = Polygon<double>(Ring<double>(std::vector<Vec2DReal>{{32.85259276854312, -3.9553591931308945},{32.8525946353636, -3.95535907994086},{32.85259464216783, -3.9553591931308945}}));
+    auto centroid = sliver.centroid();
+    EXPECT_NEAR(centroid.x, 32.852594, 1e-6);
+    EXPECT_NEAR(centroid.y, -3.955359, 1e-6);
+}
+
 TEST_F(PolygonTest, containsPoint){
     EXPECT_TRUE(polygon->contains(Vec2D(0,0)));
     EXPECT_TRUE(polygon->contains(Vec2D(-1.5,2)));

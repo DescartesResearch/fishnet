@@ -130,17 +130,20 @@ public:
      * @brief Area weighted centroid of the polygon, obtained by decomposition into its rings
      * @note fishnet defines the centroid of a ring as the mean of its points, which is what the
      * decomposition below is built on; it is not the geometric centroid OGR/GEOS would compute.
+     * The rings are weighted by their share of the area, as Vec2D rounds coordinates below epsilon
+     * to zero, which would round away centroid * area for slivers (see Polygon::centroid).
      */
     Vec2DReal centroid() const {
         auto boundary = borrowedBoundary();
-        auto totalAreaIncludingHoles = boundary.area();
-        auto accumulatedCentroid = boundary.centroid() * totalAreaIncludingHoles;
-        auto accumulatedArea = totalAreaIncludingHoles;
+        auto accumulatedArea = boundary.area();
         for(const auto & hole : borrowedHoles()){
-            accumulatedCentroid = accumulatedCentroid + hole.centroid() * -hole.area();
             accumulatedArea -= hole.area();
         }
-        return accumulatedCentroid / accumulatedArea;
+        auto accumulatedCentroid = boundary.centroid() * (boundary.area() / accumulatedArea);
+        for(const auto & hole : borrowedHoles()){
+            accumulatedCentroid = accumulatedCentroid + hole.centroid() * (-hole.area() / accumulatedArea);
+        }
+        return accumulatedCentroid;
     }
 
     bool containsInHole(const IPoint auto & point) const {

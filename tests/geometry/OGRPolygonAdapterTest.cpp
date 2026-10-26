@@ -144,6 +144,14 @@ TEST_F(OGRPolygonAdapterTest, centroidOfSymmetricPolygon) {
     EXPECT_EQ(withHole->centroid(), Vec2DReal(5,5));
 }
 
+TEST_F(OGRPolygonAdapterTest, centroidOfSliver) {
+    // building footprint in WGS84 with an area of ~1e-13, below epsilon once multiplied with the centroid
+    OGRPolygonAdapter sliver {Polygon<double>(Ring<double>(std::vector<Vec2DReal>{{32.85259276854312, -3.9553591931308945},{32.8525946353636, -3.95535907994086},{32.85259464216783, -3.9553591931308945}}))};
+    auto centroid = sliver.centroid();
+    EXPECT_NEAR(centroid.x, 32.852594, 1e-6);
+    EXPECT_NEAR(centroid.y, -3.955359, 1e-6);
+}
+
 TEST_F(OGRPolygonAdapterTest, aaBB) {
     auto bbox = withHole->aaBB();
     EXPECT_DOUBLE_EQ(bbox.left(), 0.0);

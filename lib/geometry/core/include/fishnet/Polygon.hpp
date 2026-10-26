@@ -110,17 +110,18 @@ public:
     /**
      * @brief Calculate weighted centroid of the polygon
      * https://en.wikipedia.org/wiki/Centroid
-     * @return constexpr Vec2DReal 
+     * @note the rings are weighted by their share of the area rather than by their absolute area,
+     * as Vec2D rounds coordinates below epsilon to zero: centroid * area would be rounded away for
+     * polygons with an area close to epsilon, e.g. slivers in degree based coordinate systems.
+     * @return constexpr Vec2DReal
      */
     constexpr Vec2DReal centroid() const noexcept {
-        auto totalAreaIncludingHoles = this->getBoundary().area();
-        auto accCentroid = this->getBoundary().centroid() * totalAreaIncludingHoles;
-        auto accArea = totalAreaIncludingHoles;
+        auto polygonArea = this->area();
+        auto accCentroid = this->getBoundary().centroid() * (this->getBoundary().area() / polygonArea);
         for(const auto & hole: this->getHoles()){
-            accCentroid = accCentroid + hole.centroid() * -hole.area();
-            accArea -= hole.area();
+            accCentroid = accCentroid + hole.centroid() * (-hole.area() / polygonArea);
         }
-        return accCentroid / accArea; // -> weighted centroid by decomposition
+        return accCentroid; // -> weighted centroid by decomposition
     }
 
     constexpr bool inline contains(IPoint auto const & point) const noexcept {
