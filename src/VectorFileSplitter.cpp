@@ -45,8 +45,12 @@ public:
         }
         for(auto && feature: input.getFeatures()){
             auto centroid = feature.getGeometry().centroid();
-            size_t x = size_t(((centroid.x - boundingBox.left()) / deltaX )* static_cast<double>(chunksPerDimension));
-            size_t y = size_t(((centroid.y - boundingBox.bottom()) / deltaY) * static_cast<double>(chunksPerDimension));
+            // clamp into the grid: a centroid on the right or top edge of the bounding box maps to chunksPerDimension
+            auto chunkIndex = [chunksPerDimension](double offset, double delta){
+                return static_cast<size_t>(std::clamp(offset / delta * static_cast<double>(chunksPerDimension), 0.0, static_cast<double>(chunksPerDimension - 1)));
+            };
+            size_t x = chunkIndex(centroid.x - boundingBox.left(), deltaX);
+            size_t y = chunkIndex(centroid.y - boundingBox.bottom(), deltaY);
             outputDatasets.at(y*chunksPerDimension+x).addFeature(std::move(feature));
         }
         
