@@ -27,9 +27,15 @@ class VectorFileSplitter: public Task {
 public:
     VectorFileSplitter():Task("VectorFileSplitter"){}
 
-    static void operator()(const AbstractVectorFile & source, const std::filesystem::path & outputDirectory, const VectorFileSplitterConfig & config ){
+    void operator()(const AbstractVectorFile & source, const std::filesystem::path & outputDirectory, const VectorFileSplitterConfig & config ){
         spdlog::set_level(spdlog::level::debug);
+        addInput(source.getPath());
+        addParameter("depth", config.depth);
+        addParameter("xOffset", config.xOffset);
+        addParameter("yOffset", config.yOffset);
+        addParameter("outputFormat", magic_enum::enum_name(config.outputFormat));
         const auto input = VectorIO::read<GeometryType>(source);
+        addMetric("inputFeatures", util::size(input.getFeatures()));
         const auto boundingBox = geometry::minimalBoundingBox(input.getGeometries());
         double deltaX = boundingBox.right()-boundingBox.left();
         double deltaY = boundingBox.top()-boundingBox.bottom();
@@ -60,6 +66,7 @@ public:
                 if(util::size(ds.getFeatures()) > 0) {
                     std::filesystem::path dest = ( outputDirectory / fishnet::util::PathHelper::appendToFilename(source.getPath().stem().string() + getExtension(config.outputFormat),"_"+ std::to_string(static_cast<int64_t>(x)+config.xOffset)+"_"+std::to_string(static_cast<int64_t>(y)+config.yOffset)).filename());
                     VectorIO::overwrite(ds, dest);
+                    addOutput(dest);
                 }
             }
         }

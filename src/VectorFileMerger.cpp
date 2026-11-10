@@ -10,8 +10,12 @@ class ShapefileMerger: public Task {
 public:
     ShapefileMerger():Task("ShapefileMerger"){}
 
-    static void operator()(const fishnet::util::range_of<std::filesystem::path> auto& inputs, std::filesystem::path && outputPath){
+    void operator()(const fishnet::util::range_of<std::filesystem::path> auto& inputs, std::filesystem::path && outputPath){
         fishnet::GDALInitializer::init();
+        for(const auto & input: inputs){
+            addInput(input);
+        }
+        addOutput(outputPath);
         std::vector<std::future<fishnet::VectorLayer<fishnet::geometry::OGRGeometryAdapter>>> futures;
         for(size_t i = 1; i < inputs.size();i++){
             futures.push_back(std::async(std::launch::async,[&inputs,i](){return fishnet::VectorIO::read(inputs[i]);}));
@@ -28,6 +32,7 @@ public:
                 outputLayer.addFeature(std::move(feature));
             }
         }
+        addMetric("outputFeatures", fishnet::util::size(outputLayer.getFeatures()));
         fishnet::VectorIO::overwrite(outputLayer, outputPath);
     }
 };

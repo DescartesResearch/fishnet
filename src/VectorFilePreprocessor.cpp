@@ -41,22 +41,29 @@ private:
         return biPredicate;
     }
 
-    void writeOutput(fishnet::util::forward_range_of<fishnet::Feature<G>> auto && features, fishnet::VectorLayer<G> & output) const {
+    void writeOutput(fishnet::util::forward_range_of<fishnet::Feature<G>> auto && features, fishnet::VectorLayer<G> & output) {
         auto idField = output.getSizeField(Task::FISHNET_ID_FIELD).or_else([&output](){return output.addSizeField(Task::FISHNET_ID_FIELD);}).value_or_throw();
         auto geometryHasher = std::hash<G>();
         for(auto && feature: features){
             feature.setAttribute(idField, fishnet::normalizeToShpFileIntField(geometryHasher(feature.getGeometry())));
             output.addFeature(std::move(feature));
         }
+        addMetric("outputFeatures", fishnet::util::size(output.getFeatures()));
         fishnet::VectorIO::overwrite(output, this->outputFile);
     }
     
 public:
     VectorFilePreprocessor(VectorFilePreprocessorConfig config, std::filesystem::path input, std::filesystem::path output)
-        :Task("VectorFilePreprocessor"),config(std::move(config)),inputFile(std::move(input)),outputFile(std::move(output)){}
+        :Task("VectorFilePreprocessor"),config(std::move(config)),inputFile(std::move(input)),outputFile(std::move(output)){
+        addInput(this->inputFile);
+        addOutput(this->outputFile);
+        addParameter("runFilter", this->config.runFilter);
+        addParameter("filters", this->config.filterJson);
+    }
 
     void run() {
         auto input = fishnet::VectorIO::read<G>(this->inputFile);
+        addMetric("inputFeatures", fishnet::util::size(input.getFeatures()));
         auto output = fishnet::VectorIO::emptyCopy<G>(input);
         if (not this->config.runFilter){
             writeOutput(input.getFeatures(), output);
