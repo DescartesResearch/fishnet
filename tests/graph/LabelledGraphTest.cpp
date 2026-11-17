@@ -22,6 +22,13 @@ static_assert(ILabelledGraph<LG,std::string>);
 static_assert(std::same_as<WE,UndirectedWeightedEdge<XYNode,double>>);
 static_assert(std::derived_from<WG,GraphDecorator<WG,UndirectedGraph<XYNode>,WE>>);
 
+// a plain graph cannot store labels, so labelled edges must go through the LabelledGraph adapter
+template<typename E>
+concept PlainGraphAccepts = requires { typename fishnet::graph::__impl::BaseGraph<E,AdjacencyMap<typename E::node_type>>; };
+static_assert(PlainGraphAccepts<UndirectedEdge<XYNode>>);
+static_assert(!PlainGraphAccepts<WE>);
+static_assert(!PlainGraphAccepts<DirectedLabelledEdge<int,std::string>>);
+
 class LabelledGraphTest: public ::testing::Test{
 protected:
     void SetUp() override {

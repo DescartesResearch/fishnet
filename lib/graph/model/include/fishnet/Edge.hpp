@@ -62,6 +62,13 @@ concept Weight = fishnet::math::Number<T>;
 template<typename E, typename W>
 concept IWeightedEdge = ILabelledEdge<E,W> && Weight<W>;
 
+/**
+ * @brief Concept for an edge carrying a label of its own label type, regardless of which label type it is
+ * @tparam E edge implementation type
+ */
+template<typename E>
+concept HasLabel = requires { typename E::label_type; } && ILabelledEdge<E, typename E::label_type>;
+
 } // fishnet::graph
 
 namespace fishnet::graph::__impl{
