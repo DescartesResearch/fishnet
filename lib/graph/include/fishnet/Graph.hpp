@@ -3,7 +3,7 @@
 #include <fishnet/AdjacencyMap.hpp>
 #include <fishnet/BFSAlgorithm.hpp>
 #include "DirectedAcyclicGraph.hpp"
-#include "WeightedGraph.hpp"
+#include "LabelledGraph.hpp"
 #include "BaseGraph.hpp"
 
 namespace fishnet::graph{
@@ -29,6 +29,16 @@ using UndirectedGraph = graph::__impl::BaseGraph<UndirectedEdge<N,Hash,Equal>,Ad
  */
 template<Node N, util::HashFunction<N> Hash = std::hash<N>, util::BiPredicate<N> Equal = std::equal_to<N>, AdjacencyContainer<N> AdjContainer = AdjacencyMap<N,Hash,Equal>>
 using DirectedGraph = graph::__impl::BaseGraph<DirectedEdge<N,Hash,Equal>,AdjContainer>;
+
+/**
+ * @brief Weighted Graph Adapter, constraining the label type to fulfill the weight concept
+ * @see LabelledGraph
+ * @tparam G base graph type
+ * @tparam W weight type
+ * @tparam WE weighted edge type, defaulting to LabelledEdge of the base graph's edge type
+ */
+template<Graph G, Weight W, IWeightedEdge<W> WE = LabelledEdge<typename G::edge_type,W>>
+using WeightedGraph = LabelledGraph<G,W,WE>;
 
 class GraphFactory{
 public:
