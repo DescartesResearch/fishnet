@@ -134,6 +134,14 @@ public:
         g.clear();
     }
 
+    const G & unwrap() const & noexcept {
+        return g;
+    }
+
+    G && unwrap() && noexcept {
+        return std::move(g);
+    }
+
     virtual ~GraphDecorator() = default;   
 };
 }
