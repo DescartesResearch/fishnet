@@ -31,6 +31,13 @@ TEST(WGS84EllipsoidTest, TokioBerlin){
     EXPECT_DOUBLE_EQ(WGS84Ellipsoid::distance(berlin,tokio),distanceTokioBerlinInMeters);
 }
 
+TEST(WGS84EllipsoidTest, IdenticalPointsHaveZeroDistance) {
+    EXPECT_DOUBLE_EQ(WGS84Ellipsoid::distance(39.28, -6.8, 39.28, -6.8), 0.0);
+    EXPECT_DOUBLE_EQ(WGS84Ellipsoid::distance(39.28, -6.8, 39.28, -6.8, false), 0.0);
+    geometry::Vec2DReal p = {39.28, -6.8};
+    EXPECT_DOUBLE_EQ(WGS84Ellipsoid::distance(p, p), 0.0);
+}
+
 TEST(WGS84EllipsoidTest, TokioBerlinApprox){
     double phiBerlin = 52.516666666666667;
     double lambdaBerlin = 13.400;
