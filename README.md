@@ -140,7 +140,7 @@ Fishnet is already used in existing production workflows.
 | Name | Repository |
 |---|---|
 | **Settlement Delineation and Analysis (SDA)** | https://github.com/dfg-sos/sda-workflow
-| **Sympolis** | https://github.com/LoloGruber/sympolis
+| **Sympolis** | https://github.com/dfg-sos/sympolis
 
 
 
