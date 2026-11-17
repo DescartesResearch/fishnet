@@ -4,8 +4,7 @@ on:
   push:
     branches: [ "main" ]
     tags:
-      - '[0-9]+.[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'   # x.y.z, enforced by the "Release tags" ruleset
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
