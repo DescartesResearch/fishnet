@@ -138,7 +138,7 @@ public:
         return g;
     }
 
-    G && unwrap() && noexcept {
+    G unwrap() && noexcept {
         return std::move(g);
     }
 
