@@ -2,11 +2,9 @@
 #include <fishnet/Graph.hpp>
 #include <fishnet/MSTAlgorithm.hpp>
 #include <fishnet/TestUtil.hpp>
-#include "IDNode.h"
 #include "XYNode.h"
 #include "GraphTestUtil.h"
-#include <cmath>
-#include <ranges>
+#include "MoveOnlyAdjacency.hpp"
 
 using namespace fishnet::graph;
 using namespace fishnet::util;
@@ -93,6 +91,39 @@ TEST_F(MSTAlgorithmTest, TriangleGraph) {
     expected.addEdge(a,c);
     ASSERT_VALUE(mstOpt);
     EXPECT_GRAPH_EQ(mstOpt.value(), expected);
+}
+
+TEST_F(MSTAlgorithmTest, MovedGraph) {
+    auto copy = triangleGraph;
+    auto mstOpt = MST::kruskal(std::move(copy), DistanceFunction());
+    ASSERT_VALUE(mstOpt);
+    auto expected = fishnet::graph::GraphFactory::UndirectedGraph<XYNode>();
+    expected.addEdge(a,b);
+    expected.addEdge(a,c);
+    EXPECT_GRAPH_EQ(mstOpt.value(), expected);
+}
+
+TEST_F(MSTAlgorithmTest, LValueGraphIsNotModified) {
+    auto mstOpt = MST::kruskal(triangleGraph, DistanceFunction());
+    ASSERT_VALUE(mstOpt);
+    EXPECT_SIZE(triangleGraph.getEdges(), 3);
+    EXPECT_TRUE(triangleGraph.containsEdge(b,c));
+}
+
+TEST_F(MSTAlgorithmTest, MoveOnlyAdjacency) {
+    // a move only graph can only be passed as rvalue, so this only compiles if kruskal never copies the graph
+    auto moveOnlyGraph = GraphFactory::UndirectedGraph(MoveOnlyAdjacency<XYNode>());
+    static_assert(!std::is_copy_constructible_v<decltype(moveOnlyGraph)>);
+    moveOnlyGraph.addEdge(a,b);
+    moveOnlyGraph.addEdge(b,c);
+    moveOnlyGraph.addEdge(a,c);
+    auto mstOpt = MST::kruskal(std::move(moveOnlyGraph), DistanceFunction());
+    ASSERT_VALUE(mstOpt);
+    auto mst = std::move(mstOpt).value();
+    EXPECT_SIZE(mst.getEdges(), 2);
+    EXPECT_TRUE(mst.containsEdge(a,b));
+    EXPECT_TRUE(mst.containsEdge(a,c));
+    EXPECT_FALSE(mst.containsEdge(b,c));
 }
 
 TEST_F(MSTAlgorithmTest, DisconnectedGraphReturnsNullopt) {

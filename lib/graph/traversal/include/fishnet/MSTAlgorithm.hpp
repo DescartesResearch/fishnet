@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include <algorithm>
-#include <ranges>
 #include <unordered_map>
 #include <optional>
 #include <type_traits>
@@ -56,66 +55,61 @@ public:
         return find(a) == find(b);
     }
 };
+} // namespace __impl
 
 /**
- * @brief Internal Kruskal's implementation
+ * @brief Compute the Minimum Spanning Tree of a graph using Kruskal's algorithm.
  * 
+ * Returns an Option containing the MST graph if the input graph is connected.
+ * Returns nullopt if the graph is disconnected.
  * @tparam G graph type
- * @tparam W weight function type
- * @param graph input graph
- * @param weightFunction function computing edge weight from two nodes
- * @param mst output graph to store the MST result
- * @return fishnet::Option<G> reference to mst if connected, nullopt if disconnected
+ * @tparam WFn weight function type
+ * @param graph input graph (by value)
+ * @param weightFunction weight function computing the weight of an edge from its two endpoints
+ * @return Option<G> MST graph, or nullopt if graph is disconnected
  */
-template<Graph G, typename W>
-requires std::totally_ordered<std::invoke_result_t<W, const typename G::node_type&, const typename G::node_type&>>
-static fishnet::Option<G> kruskalImpl(
-    const G& graph,
-    W const& weightFunction,
-    G && mst
+template<Graph G, typename WFn>
+    requires fishnet::graph::Weight<std::invoke_result_t<WFn, const typename G::node_type&, const typename G::node_type&>>
+fishnet::Option<G> kruskal(
+    G graph,
+    WFn weightFunction
 ) {
-    using N = typename G::node_type;
-    using E = typename G::edge_type;
-    using H = typename G::adj_container_type::hash_function;
-    using Eq = typename G::adj_container_type::equality_predicate;
+    auto weighted = WeightedGraph(std::move(graph), std::move(weightFunction));
+    using WG = std::remove_cvref_t<decltype(weighted)>;
+    using N = typename WG::node_type;
+    using E = typename WG::edge_type;
+    using H = typename WG::adj_container_type::hash_function;
+    using Eq = typename WG::adj_container_type::equality_predicate;
 
-    auto nodes = graph.getNodes();
-    size_t nodeCount = std::ranges::distance(nodes);
+    size_t nodeCount = std::ranges::distance(weighted.getNodes());
 
-    if (nodeCount == 0) {
-        return std::move(mst);
-    }
-
-    if (nodeCount == 1) {
-        for (const auto& node : nodes) {
-            mst.addNode(node);
-        }
-        return std::move(mst);
+    if (nodeCount <= 1) {
+        return std::move(weighted).unwrap();
     }
 
     // node -> index mapping
     std::unordered_map<N, size_t, H, Eq> nodeToIndex;
     nodeToIndex.reserve(nodeCount);
     size_t idx = 0;
-    for (const auto& node : nodes) {
+    for (const auto& node : weighted.getNodes()) {
         nodeToIndex[node] = idx++;
     }
 
-    std::vector<E> edges = fishnet::util::toVector(graph.getEdges());
-    auto weightComparator = [&weightFunction](const E& lhs, const E& rhs) {
-        return weightFunction(lhs.getFrom(), lhs.getTo()) < weightFunction(rhs.getFrom(), rhs.getTo());
+    std::vector<E> edges = fishnet::util::toVector(weighted.getEdges());
+    auto weightComparator = [](const E& lhs, const E& rhs) {
+        return lhs.getLabel() < rhs.getLabel();
     };
     std::ranges::sort(edges, weightComparator);
 
-    UnionFind uf(nodeCount);
+    __impl::UnionFind uf(nodeCount);
     size_t edgesAdded = 0;
     size_t targetEdges = nodeCount - 1;
-
+    weighted.clear(); // Clear the output graph to store the MST
+    auto mst = std::move(weighted).unwrap(); // Move the graph to the MST variable
     for (const auto& edge : edges) {
         size_t fromIdx = nodeToIndex.at(edge.getFrom());
         size_t toIdx = nodeToIndex.at(edge.getTo());
-        if (not uf.connected(fromIdx, toIdx)) {
-            uf.unite(fromIdx, toIdx);
+        if (uf.unite(fromIdx, toIdx)) {
             mst.addEdge(edge.getFrom(), edge.getTo());
             edgesAdded++;
             if (edgesAdded == targetEdges) {
@@ -127,53 +121,7 @@ static fishnet::Option<G> kruskalImpl(
     if (edgesAdded != targetEdges) {
         return std::nullopt;
     }
-    return std::move(mst);
-}
-
-} // namespace __impl
-
-/**
- * @brief Compute the Minimum Spanning Tree of a graph using Kruskal's algorithm.
- * 
- * Returns an Option containing the MST graph if the input graph is connected.
- * Returns nullopt if the graph is disconnected.
- * 
- * @tparam G graph type
- * @tparam W weight function type
- * @param graph input graph
- * @param weightFunction BiFunction computing the weight of an edge from its two endpoints
- * @return fishnet::Option<G> MST graph, or nullopt if graph is disconnected
- */
-template<Graph G, typename W>
-requires std::totally_ordered<std::invoke_result_t<W, const typename G::node_type&, const typename G::node_type&>> && std::is_default_constructible_v<G>
-fishnet::Option<G> kruskal(
-    const G& graph,
-    W const& weightFunction
-) {
-    return __impl::kruskalImpl<G, W>(graph, weightFunction, G());
-}
-
-/**
- * @brief Compute the Minimum Spanning Tree of a graph using Kruskal's algorithm.
- * 
- * Returns an Option containing the MST graph if the input graph is connected.
- * Returns nullopt if the graph is disconnected.
- * 
- * @tparam G graph type
- * @tparam W weight function type
- * @param graph input graph
- * @param weightFunction BiFunction computing the weight of an edge from its two endpoints
- * @param outputGraph graph to store the MST result
- * @return fishnet::Option<G> MST graph, or nullopt if graph is disconnected
- */
-template<Graph G, typename W>
-requires std::totally_ordered<std::invoke_result_t<W, const typename G::node_type&, const typename G::node_type&>>
-fishnet::Option<G> kruskal(
-    const G& graph,
-    W const& weightFunction,
-    G && outputGraph
-) {
-    return __impl::kruskalImpl<G, W>(graph, weightFunction, std::forward<G>(outputGraph));
+    return mst;
 }
 
 } // namespace fishnet::graph::MST
