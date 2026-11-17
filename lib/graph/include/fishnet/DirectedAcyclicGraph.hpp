@@ -26,20 +26,6 @@ private:
 public:
     DirectedAcyclicGraph(G && underlyingGraph):Base(std::move(underlyingGraph)){}
 
-    DirectedAcyclicGraph(DirectedAcyclicGraph && other):Base(std::move(other.g)){}
-
-    DirectedAcyclicGraph(const DirectedAcyclicGraph & other):Base(other.g){}
-
-    DirectedAcyclicGraph & operator=(const DirectedAcyclicGraph & other){
-        this->g = other.g;
-        return *this;
-    }
-
-    DirectedAcyclicGraph & operator=(DirectedAcyclicGraph && other) {
-        this->g = std::move(other.g);
-        return *this;
-    }
-
     DirectedAcyclicGraph():Base(){}
 
     bool addEdge(const N & from, const N & to) noexcept{

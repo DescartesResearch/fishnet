@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <fishnet/Graph.hpp>
 #include <fishnet/TestUtil.hpp>
+#include "MoveOnlyAdjacency.hpp"
 
 using namespace fishnet::graph;
 using namespace fishnet::test;
@@ -96,4 +97,18 @@ TEST_F(DAGTest, rootNodes){
     EXPECT_SIZE(roots,2);
     EXPECT_CONTAINS(roots,1);
     EXPECT_CONTAINS(roots,0);
+}
+
+TEST_F(DAGTest, moveOnlyAdjacency){
+    using MoveOnlyDAG = decltype(GraphFactory::DAG(MoveOnlyAdjacency<size_t>()));
+    static_assert(!std::is_copy_constructible_v<MoveOnlyDAG> && !std::is_copy_assignable_v<MoveOnlyDAG>);
+    static_assert(std::is_move_constructible_v<MoveOnlyDAG> && std::is_move_assignable_v<MoveOnlyDAG>);
+    auto source = GraphFactory::DAG(MoveOnlyAdjacency<size_t>());
+    source.addEdge(1,2);
+    MoveOnlyDAG moved {std::move(source)};
+    EXPECT_TRUE(moved.containsEdge(1,2));
+    auto assigned = GraphFactory::DAG(MoveOnlyAdjacency<size_t>());
+    assigned = std::move(moved);
+    EXPECT_TRUE(assigned.containsEdge(1,2));
+    EXPECT_FALSE(assigned.addEdge(2,1));
 }
