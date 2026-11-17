@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "Fishnet"
-PROJECT_NUMBER         = @PROJECT_VERSION@
+PROJECT_NUMBER         =
 PROJECT_BRIEF          = "Framework for Graph-Based Analysis of GIS Vector Data"
 PROJECT_LOGO           = 
 OUTPUT_DIRECTORY       = @CMAKE_BINARY_DIR@/doc

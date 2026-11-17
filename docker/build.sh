@@ -1,6 +1,7 @@
 #!/bin/bash
 PATH_TO_PROJECT_ROOT=../
-VERSION=$(grep -oP 'project\s*\([^)]*VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+' $PATH_TO_PROJECT_ROOT/CMakeLists.txt)
+# the git tag is the version (e.g. 2.2.0, or 2.2.0-3-gabc1234 for commits after the tag)
+VERSION=$(git -C $PATH_TO_PROJECT_ROOT describe --tags --always)
 
 # Update fishnet-deps
 IMAGE=fishnet-deps
