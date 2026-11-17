@@ -42,9 +42,9 @@ requires(const GraphImpl & g,GraphImpl & g_mut,  N n, std::vector<N> nodes, E e,
     typename GraphImpl::adj_container_type;
 };
 
-template<typename GraphImpl, typename Label>
+template<typename GraphImpl, typename Label=GraphImpl::edge_type::label_type>
 concept ILabelledGraph = Graph<GraphImpl> && ILabelledEdge<typename GraphImpl::edge_type, Label>;
 
-template<typename GraphImpl, typename Weight>
+template<typename GraphImpl, typename Weight=GraphImpl::edge_type::label_type>
 concept IWeightedGraph = Graph<GraphImpl> && IWeightedEdge<typename GraphImpl::edge_type, Weight>;
 }
