@@ -68,8 +68,10 @@ TEST(EdgeTest, equalAndHash){
 TEST(EdgeTest, isDirected){
     EXPECT_TRUE(DirectedEdge<XYNode>::isDirected());
     EXPECT_FALSE(UndirectedEdge<XYNode>::isDirected());
-    auto dir = WeightEdge<DirectedEdge<XYNode>,double,XYNodeWeightFunction>::isDirected();
-    EXPECT_TRUE(dir);
+    auto directed = DirectedWeightedEdge<XYNode,double>::isDirected();
+    auto undirected = UndirectedWeightedEdge<XYNode,double>::isDirected();
+    EXPECT_TRUE(directed);
+    EXPECT_FALSE(undirected);
 }
 
 TEST(EdgeTest, specificHashAndEqual){

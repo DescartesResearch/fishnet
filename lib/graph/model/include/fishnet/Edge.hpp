@@ -5,11 +5,13 @@
 
 namespace fishnet::graph{
 
+/**
+ * @brief Concept for a Node
+ * A node must be equality comparable.
+ * @tparam N node type
+ */
 template<typename N>
-concept Node = std::equality_comparable<N>;
-
-template<typename NodeType,typename N>
-concept UniversalNodeRef = std::same_as<N,std::remove_cvref_t<NodeType>>;
+concept Node = std::equality_comparable<std::remove_cvref_t<N>>;
 
 /**
  * @brief Interface for an Edge
@@ -18,9 +20,8 @@ concept UniversalNodeRef = std::same_as<N,std::remove_cvref_t<NodeType>>;
  * @tparam N node type
  */
 template<typename E, typename N=E::node_type>
-concept Edge = fishnet::util::HasHashMethod<E> && std::equality_comparable<E> && requires(const E & e, const E & o, const N & cNodeRef /*, N&& nodeRval*/){
+concept Edge = fishnet::util::HasHashMethod<E> && std::equality_comparable<E> && requires(const E & e, const N & cNodeRef){
     {E(cNodeRef,cNodeRef)};
-    /*{E(nodeRval,nodeRval)};*/
     {E::isDirected()} -> std::convertible_to<bool>;
     {e.getFrom()} -> std::same_as<const N &>;
     {e.getTo()} -> std::same_as<const N &>;
@@ -29,30 +30,39 @@ concept Edge = fishnet::util::HasHashMethod<E> && std::equality_comparable<E> &&
     typename E::equality_predicate;
 };
 
-template<typename A>
-concept Annotation = fishnet::math::Number<A>;
+/**
+ * @brief Interface for a labelled Edge
+ * A labelled edge has a label of type L.
+ * @tparam E edge implementation type
+ * @tparam L label type
+ */
+template<typename E, typename L>
+concept ILabelledEdge = Edge<E> && 
+requires(const E & e,const std::remove_cvref_t<typename E::node_type> & node, const L & label){
+    E(node,node,label);
+    {e.getLabel()} -> std::convertible_to<L>;
+    typename E::label_type;
+};
 
-template<typename F, typename N, typename A>
-concept WeightFunction= Annotation<A> && fishnet::util::BiFunction<F,N,N,A>;
+/**
+ * @brief Concept for an edge weight
+ * An edge weight (currently) must be a number.
+ * @note Could be generalized to Semiring or an ordered monoid
+ * @tparam T weight type
+ */
+template<typename T>
+concept Weight = fishnet::math::Number<T>;
 
 /**
  * @brief Interface for a weighted Edge
- * 
- * @tparam E unweighted edge implementation type
- * @tparam N node type
- * @tparam A annotation type
- * @tparam W weight function type
+ * A weighted edge is a labelled edge whose label fulfills the weight concept.
+ * @tparam E edge implementation type
+ * @tparam W weight type
  */
-template<typename E, typename N= E::node_type, typename A=E::annotation_type, typename W=E::weight_function>
-concept WeightedEdge = Edge<E,N> && WeightFunction<W,N,A> && requires (const E & e, const N & cNodeRef, const A & constARef, A&& ARval ){
-    {E(cNodeRef,cNodeRef,constARef)};
-    {E(cNodeRef,cNodeRef,ARval)};
-    {e.getWeight()} -> std::convertible_to<A>;
-    {e.unweighted()} -> std::convertible_to<E>;
-    typename E::annotation_type;
-    typename E::weight_function;
-};
-}
+template<typename E, typename W>
+concept IWeightedEdge = ILabelledEdge<E,W> && Weight<W>;
+
+} // fishnet::graph
 
 namespace fishnet::graph::__impl{
     /**
@@ -131,54 +141,47 @@ namespace fishnet::graph::__impl{
     };
 
     /**
-     * @brief Weighted edge decorator, inheriting from edge type
+     * @brief Default labelled edge implementation, inheriting from edge type
      * 
-     * @tparam E edge type
-     * @tparam A annotation type
-     * @tparam W weight function type
+     * @tparam E edge type (cannot be a labelled edge)
+     * @tparam L label type
      */
-    template<Edge E,Annotation A,WeightFunction<typename E::node_type,A> W>
-        class WeightedEdgeDecorator: public E{
+    template<Edge E, typename L> requires (not fishnet::graph::ILabelledEdge<E,L>)
+    class BaseLabelledEdge: public E{
         private:
-            A weight;
-            using N=typename E::node_type;
+            L label;
+            using N = typename E::node_type;
         public:
-            using annotation_type=A;
-            using weight_function=W;
+            using label_type = L;
+            using node_type = typename E::node_type;
 
-            WeightedEdgeDecorator(const N & from, const N & to, const A & weight): E(from,to),weight(weight){};
+            template<typename FromType, typename ToType, typename LabelType>
+                requires std::constructible_from<N,FromType> && std::constructible_from<N,ToType> && std::constructible_from<L, LabelType>
+            BaseLabelledEdge(FromType && from, ToType && to, LabelType && label):E(std::forward<FromType>(from),std::forward<ToType>(to)),label(std::forward<LabelType>(label)){};
 
-            WeightedEdgeDecorator(const N & from, const N & to):E(from,to){
-                this->weight = W()(from,to);
+            template<typename FromType, typename ToType>
+                requires std::constructible_from<N,FromType> && std::constructible_from<N,ToType> && std::default_initializable<L>
+            BaseLabelledEdge(FromType && from, ToType && to):E(std::forward<FromType>(from),std::forward<ToType>(to)),label(){};
+
+            template<typename EdgeType, typename LabelType>
+                requires std::same_as<E,std::remove_cvref_t<EdgeType>> && std::constructible_from<L,LabelType>
+            BaseLabelledEdge(EdgeType && edge, LabelType && label):E(std::forward<EdgeType>(edge)),label(std::forward<LabelType>(label)){}
+
+            template<typename EdgeType>
+                requires std::same_as<E,std::remove_cvref_t<EdgeType>> && std::default_initializable<L>
+            BaseLabelledEdge(EdgeType && edge):E(std::forward<EdgeType>(edge)),label(){}
+            
+            const L & getLabel()const{
+                return label;
             }
 
-            WeightedEdgeDecorator(const N & from, const N & to, A &&weight): E(from,to),weight(std::move(weight)){};
-
-            WeightedEdgeDecorator( E && edge ):WeightedEdgeDecorator(edge.getFrom(),edge.getTo()){}
-
-            WeightedEdgeDecorator(const E & edge ):WeightedEdgeDecorator(edge.getFrom(),edge.getTo()){}
-
-            void setWeight(const A & weight){
-                this->weight = weight;
-            }
-
-            const A& getWeight()const{
-                return weight;
-            }
-
-            E inline unweighted()const {
-                return E(this->getFrom(),this->getTo());
-            }
-
-            bool operator==(const WeightedEdgeDecorator<E,A,W> & other) const {
-                return this->unweighted() == other.unweighted() && this->weight == other.getWeight();
-            }
-
-            size_t inline hash() const{
-                return this->unweighted().hash() + std::hash<A>{}(weight);
+            std::string toString() const noexcept requires fishnet::util::Printable<L> {
+                std::ostringstream oss;                    
+                oss << E::toString() << " [" << this->label << "]";
+                return oss.str();
             }
     };
-}
+} // fishnet::graph::__impl
 
 namespace fishnet::graph{
 
@@ -188,6 +191,19 @@ using UndirectedEdge = __impl::BaseEdge<N,false,Hash,Equal>;
 template<Node N, fishnet::util::HashFunction<N> Hash = std::hash<N>, fishnet::util::BiPredicate<N> Equal = std::equal_to<N>>
 using DirectedEdge = __impl::BaseEdge<N,true,Hash,Equal>;
 
-template<Edge E, Annotation A , WeightFunction<typename E::node_type,A> W>
-using WeightEdge = __impl::WeightedEdgeDecorator<E,A,W>;
-}
+template<Edge E, typename L> requires (not ILabelledEdge<E,L>)
+using LabelledEdge = __impl::BaseLabelledEdge<E,L>;
+
+template<Node N, typename L, fishnet::util::HashFunction<N> Hash = std::hash<N>, fishnet::util::BiPredicate<N> Equal = std::equal_to<N>>
+using UndirectedLabelledEdge = LabelledEdge<UndirectedEdge<N,Hash,Equal>,L>;
+
+template<Node N, typename L, fishnet::util::HashFunction<N> Hash = std::hash<N>, fishnet::util::BiPredicate<N> Equal = std::equal_to<N>>
+using DirectedLabelledEdge = LabelledEdge<DirectedEdge<N,Hash,Equal>,L>;
+
+template<Node N, Weight W, fishnet::util::HashFunction<N> Hash = std::hash<N>, fishnet::util::BiPredicate<N> Equal = std::equal_to<N>>
+using UndirectedWeightedEdge = LabelledEdge<UndirectedEdge<N,Hash,Equal>,W>;
+
+template<Node N, Weight W, fishnet::util::HashFunction<N> Hash = std::hash<N>, fishnet::util::BiPredicate<N> Equal = std::equal_to<N>>
+using DirectedWeightedEdge = LabelledEdge<DirectedEdge<N,Hash,Equal>,W>;
+
+} // fishnet::graph
