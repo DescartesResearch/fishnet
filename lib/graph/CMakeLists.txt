@@ -1,7 +1,7 @@
 add_subdirectory(adjacency)
 add_subdirectory(model)
-add_subdirectory(algorithm)
-add_subdirectory(centrality)
+add_subdirectory(traversal)
+add_subdirectory(measures)
 SET(GraphLib fishnet_graph)
 add_library(${GraphLib} INTERFACE)
 target_link_libraries(${GraphLib} INTERFACE 
