@@ -1,10 +1,8 @@
 #include <gtest/gtest.h>
+#include <fishnet/Graph.hpp>
 #include <fishnet/Contraction.hpp>
-#include <fishnet/WeightedGraph.hpp>
 #include "XYNode.h"
 #include "GraphTestUtil.h"
-#include <queue>
-#include <fstream>
 
 
 struct MergePredicate{
@@ -19,29 +17,14 @@ struct MergePredicate{
     }
 };
 
-struct DistanceFunction{
-    double operator()(const XYNode & n1, const XYNode & n2) const {
-        return n1.distanceTo(n2);
-    }
-};
-
-struct EdgeLessThan{
-    bool operator()(const fishnet::graph::WeightedEdge auto & e1, const fishnet::graph::WeightedEdge auto & e2) const {
-        return e1.getWeight() < e2.getWeight();
-    }
-};
-
-
-
 class ContractionTest: public ::testing::Test{
 protected:
-    fishnet::graph::Weighted<fishnet::graph::UndirectedGraph<XYNode>,double,DistanceFunction> g;
+    fishnet::graph::UndirectedGraph<XYNode> g;
     std::vector<XYNode> nodes;
 
     void SetUp() override {
         // Make fully connected graph
         nodes = randomNodes(50);
-        g = fishnet::graph::Weighted<fishnet::graph::UndirectedGraph<XYNode>,double,DistanceFunction>(nodes);
         for(auto &from: nodes){
             for(auto & to: nodes ){
                 if(from != to) g.addEdge(from,to);
@@ -53,10 +36,7 @@ protected:
 
 TEST_F(ContractionTest, SingleWorker){
     MergePredicate Predicate;
-    fishnet::graph::Weighted<fishnet::graph::UndirectedGraph<XYNode>,double,DistanceFunction> result;
-    {
-        result = fishnet::graph::contract(g,MergePredicate(),MergeFunction());
-    }
+    auto result = fishnet::graph::contract(g,MergePredicate(),MergeFunction());
     for(auto & e: result.getEdges()){
         EXPECT_FALSE(Predicate(e.getFrom(),e.getTo()));
     }
