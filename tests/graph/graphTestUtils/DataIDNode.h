@@ -10,7 +10,7 @@ class DataIDNode : public IDNode {
 private:
     T data;
 public:
-    DataIDNode(const T & data):IDNode(), data(data){};
+    DataIDNode(const T & data):IDNode(), data(data){}
     ~DataIDNode() = default;
     T getData() const {
         return this->data;

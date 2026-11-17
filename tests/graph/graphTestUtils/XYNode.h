@@ -8,7 +8,7 @@ private:
     double x;
     double y;
 public:
-    XYNode(double x, double y):x(x),y(y){};
+    XYNode(double x, double y):x(x),y(y){}
 
     bool operator==(const XYNode & other) const {
         return this->x == other.x and this->y == other.y;

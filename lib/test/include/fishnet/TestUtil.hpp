@@ -54,7 +54,7 @@ concept Printable = requires(std::stringstream ss,const std::remove_cvref_t<T> &
 template<typename T>
 concept OptionalOrExpected = requires(const T & t){
     {t.has_value()} -> std::convertible_to<bool>;
-    {t.value()} -> std::convertible_to<typename std::remove_cvref_t<T>::value_type>;
+    {t.value()} -> std::convertible_to<const typename std::remove_cvref_t<T>::value_type &>;
 };
 
 template<typename T>

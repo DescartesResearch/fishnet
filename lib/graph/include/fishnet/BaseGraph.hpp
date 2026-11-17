@@ -10,10 +10,12 @@ namespace fishnet::graph::__impl {
 /**
  * @brief Default graph implementation
  * 
- * @tparam E edge type
+ * @tparam E edge type (unlabelled: the adjacency container only stores node pairs, so labels would be lost.
+ * Use LabelledGraph / WeightedGraph for labelled edges)
  * @tparam AdjContainer adjacency container type
  */
 template<Edge E, AdjacencyContainer<typename E::node_type> AdjContainer>
+requires (not HasLabel<E>)
 class BaseGraph {
 public:
     using node_type = typename AdjContainer::node_type;

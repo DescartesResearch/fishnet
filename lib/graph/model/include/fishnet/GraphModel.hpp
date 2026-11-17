@@ -6,12 +6,6 @@
 
 namespace fishnet::graph {
 
-// template<typename P, typename N>
-// concept NodeBiPredicate = Node<N> && util::BiPredicate<P,N>;
-
-// template<typename F, typename N>
-// concept NodeBiOperator = Node<N> && util::BiOperator<F,N>;
-
 /**
  * @brief Interface for graph types.
  * Every graph type has to inherit from AbstractGraph
@@ -47,4 +41,10 @@ requires(const GraphImpl & g,GraphImpl & g_mut,  N n, std::vector<N> nodes, E e,
     typename GraphImpl::edge_type;
     typename GraphImpl::adj_container_type;
 };
+
+template<typename GraphImpl, typename Label=GraphImpl::edge_type::label_type>
+concept ILabelledGraph = Graph<GraphImpl> && ILabelledEdge<typename GraphImpl::edge_type, Label>;
+
+template<typename GraphImpl, typename Weight=GraphImpl::edge_type::label_type>
+concept IWeightedGraph = Graph<GraphImpl> && IWeightedEdge<typename GraphImpl::edge_type, Weight>;
 }

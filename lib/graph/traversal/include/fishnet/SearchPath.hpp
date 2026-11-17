@@ -24,7 +24,7 @@ private:
 public:
     using node_type =  N;
 
-    SearchPath(const N & start, const N & goal): SearchResult<SearchPath<E,Hash,Equal>,N,Hash,Equal>(),start(start),goal(goal),found(false){};
+    SearchPath(const N & start, const N & goal): SearchResult<SearchPath<E,Hash,Equal>,N,Hash,Equal>(),start(start),goal(goal),found(false){}
 
     void onOpen(const N & node) {
         if(eq(node,goal)) {

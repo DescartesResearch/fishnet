@@ -14,6 +14,16 @@ concept HasToString = requires(const T &obj){
 };
 
 /**
+ * @brief Concept for objects that can be printed to an ostream
+ * 
+ * @tparam T 
+ */
+template<typename T>
+concept Printable = HasToString<T> || requires(const T & obj, std::ostream & os){
+    { os << obj } -> std::same_as<std::ostream &>;
+};
+
+/**
  * @brief Helper concept which checks whether a class has a hash method
  * 
  * @tparam T 

@@ -8,7 +8,8 @@ DirectedGraphTest.cpp
 ConnectedComponentsTest.cpp 
 SearchPathTest.cpp 
 ContractionTest.cpp 
-WeightedGraphTest.cpp
+LabelledGraphTest.cpp
+LabelledEdgeTest.cpp
 EdgeTest.cpp
 DAGTest.cpp
 JSONAdjacencyTest.cpp
@@ -19,7 +20,3 @@ SubgraphsTest.cpp
 )
 gtest_discover_tests(${GraphTestBin})
 target_link_libraries(${GraphTestBin} PRIVATE Fishnet::Test ${FISHNET}::Graph graphTest_util ${FISHNET}::IO::Console)
-
-SET(ContractionTestBin Test-Contraction)
-add_executable(${ContractionTestBin} ContractionPerformance.cpp)
-target_link_libraries(${ContractionTestBin} PRIVATE Fishnet::Test ${FISHNET}::Graph graphTest_util ${FISHNET}::IO::Console)

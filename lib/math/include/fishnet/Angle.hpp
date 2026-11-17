@@ -35,7 +35,7 @@ protected:
         this->angle = normalizedAngle(newAngle);
     }
 
-    AbstractAngle() : angle(0.0) {};
+    AbstractAngle() : angle(0.0) {}
 
 public:
 

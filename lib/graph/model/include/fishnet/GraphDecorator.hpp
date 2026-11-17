@@ -16,9 +16,13 @@ protected:
     G g;
     using N = G::node_type;
     GraphDecorator() requires std::is_default_constructible_v<G> = default;
-    GraphDecorator(G && source):g(std::move(source)){};
-    GraphDecorator(typename G::adj_container_type && adjContainer):g(std::move(adjContainer)){}
-    GraphDecorator(util::forward_range_of<N> auto && nodes):g(std::forward<decltype(nodes)>(nodes)){};
+    GraphDecorator(G && source):g(std::move(source)){}
+    GraphDecorator(util::forward_range_of<N> auto && nodes):g(std::forward<decltype(nodes)>(nodes)){}
+    // Explicitly defaulted due to virtual destructor.Protected to prevent slicing.
+    GraphDecorator(const GraphDecorator &) = default;
+    GraphDecorator(GraphDecorator &&) = default;
+    GraphDecorator & operator=(const GraphDecorator &) = default;
+    GraphDecorator & operator=(GraphDecorator &&) = default;
 public:
     using edge_type = E;
     using adj_container_type = G::adj_container_type;
@@ -128,6 +132,14 @@ public:
 
     void clear(){
         g.clear();
+    }
+
+    const G & unwrap() const & noexcept {
+        return g;
+    }
+
+    G unwrap() && noexcept {
+        return std::move(g);
     }
 
     virtual ~GraphDecorator() = default;   
