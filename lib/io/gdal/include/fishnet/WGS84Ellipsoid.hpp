@@ -73,6 +73,10 @@ public:
         math::Degrees G = math::Degrees((phiA - phiB) / 2);
         math::Degrees l = math::Degrees((lambdaA - lambdaB) / 2);
         double S = sin2(G) * cos2(l) + cos2(F) * sin2(l);
+        if (S == 0.0) {
+            // identical points: w becomes 0, so T = 0/0 = NaN and h2 divides by S = 0 in the exact branch
+            return 0.0;
+        }
         double C = cos2(G) * cos2(l) + sin2(F) * sin2(l);
         math::Radians w = math::Radians::atan(sqrt(S / C));
         double distance = 2 * w.getAngleValue() * radiusInMeter;
