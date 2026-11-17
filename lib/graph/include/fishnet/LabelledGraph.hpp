@@ -122,4 +122,8 @@ class LabelledGraph: public GraphDecorator<LabelledGraph<G,L,LE>,G,LE>{
             edges.clear();
         }
 };
+// Deduction guides
+template<Graph G, typename LabelFn>
+LabelledGraph(G, LabelFn) -> LabelledGraph<std::remove_cvref_t<G>, std::invoke_result_t<LabelFn, const typename G::node_type&, const typename G::node_type&>>;
+
 }
