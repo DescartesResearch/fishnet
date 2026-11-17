@@ -130,10 +130,10 @@ FISHNET_DOCS | Enable documentation generation | OFF
 # Continuous Integration
 The [CI pipeline](.github/workflows/ci.yml) builds and tests Fishnet on every push and pull request to `main`. The Docker images are only published afterwards, when the pipeline is triggered manually or a version tag is pushed:
 ```shell
-git tag 1.2.3   # must match the VERSION in CMakeLists.txt
+git tag 1.2.3   # the tag is the version, nothing to bump in the code
 git push origin 1.2.3
 ```
-Each publish pushes the images tagged with the project version and `latest`. The documentation is built and deployed to GitHub Pages by a [separate pipeline](.github/workflows/docs.yml).
+Each publish pushes the images tagged with the version (`sha-<commit>` for manual runs on a branch) and `latest`. The documentation is built and deployed to GitHub Pages by a [separate pipeline](.github/workflows/docs.yml).
 
 # Workflows
 Fishnet is already used in existing production workflows.

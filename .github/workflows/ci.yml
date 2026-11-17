@@ -52,16 +52,14 @@ jobs:
 
     - name: Resolve version
       id: version
+      # The git tag is the version. Manual runs on a branch are tagged with the commit instead.
       run: |
-        cmake_version=$(grep -oP 'project\s*\([^)]*VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
         if [ "${{ github.ref_type }}" = "tag" ]; then
-          normalize_version() { awk -F. '{printf "%d.%d.%d", $1, $2, ($3=="" ? 0 : $3)}' <<< "$1"; }
-          if [ "$(normalize_version "$cmake_version")" != "$(normalize_version "$GITHUB_REF_NAME")" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match the project version in CMakeLists.txt ($cmake_version)."
-            exit 1
-          fi
+          version="$GITHUB_REF_NAME"
+        else
+          version="sha-${GITHUB_SHA::7}"
         fi
-        echo "version=$cmake_version" >> "$GITHUB_OUTPUT"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
 
     - name: Resolve image namespace
       run: echo "IMAGE_NAMESPACE=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
