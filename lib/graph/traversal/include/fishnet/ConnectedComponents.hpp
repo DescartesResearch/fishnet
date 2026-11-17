@@ -166,7 +166,7 @@ protected:
         this->queue->put(std::make_pair(component_index,this->components.back())); // add connected component to blocking queue on close
     }
 public:
-    ConcurrentConnectedComponents(QueuePtr q):ConnectedComponents<N,Hash,Equal>(),queue(q){};
+    ConcurrentConnectedComponents(QueuePtr q):ConnectedComponents<N,Hash,Equal>(),queue(q){}
 
     ~ConcurrentConnectedComponents()=default;
 };

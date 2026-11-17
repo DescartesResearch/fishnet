@@ -164,11 +164,11 @@ namespace fishnet::graph::__impl{
 
             template<typename FromType, typename ToType, typename LabelType>
                 requires std::constructible_from<N,FromType> && std::constructible_from<N,ToType> && std::constructible_from<L, LabelType>
-            BaseLabelledEdge(FromType && from, ToType && to, LabelType && label):E(std::forward<FromType>(from),std::forward<ToType>(to)),label(std::forward<LabelType>(label)){};
+            BaseLabelledEdge(FromType && from, ToType && to, LabelType && label):E(std::forward<FromType>(from),std::forward<ToType>(to)),label(std::forward<LabelType>(label)){}
 
             template<typename FromType, typename ToType>
                 requires std::constructible_from<N,FromType> && std::constructible_from<N,ToType> && std::default_initializable<L>
-            BaseLabelledEdge(FromType && from, ToType && to):E(std::forward<FromType>(from),std::forward<ToType>(to)),label(){};
+            BaseLabelledEdge(FromType && from, ToType && to):E(std::forward<FromType>(from),std::forward<ToType>(to)),label(){}
 
             template<typename EdgeType, typename LabelType>
                 requires std::same_as<E,std::remove_cvref_t<EdgeType>> && std::constructible_from<L,LabelType>

@@ -16,8 +16,8 @@ protected:
     G g;
     using N = G::node_type;
     GraphDecorator() requires std::is_default_constructible_v<G> = default;
-    GraphDecorator(G && source):g(std::move(source)){};
-    GraphDecorator(util::forward_range_of<N> auto && nodes):g(std::forward<decltype(nodes)>(nodes)){};
+    GraphDecorator(G && source):g(std::move(source)){}
+    GraphDecorator(util::forward_range_of<N> auto && nodes):g(std::forward<decltype(nodes)>(nodes)){}
     // Explicitly defaulted due to virtual destructor.Protected to prevent slicing.
     GraphDecorator(const GraphDecorator &) = default;
     GraphDecorator(GraphDecorator &&) = default;

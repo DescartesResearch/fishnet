@@ -29,14 +29,14 @@ class LabelledGraph: public GraphDecorator<LabelledGraph<G,L,LE>,G,LE>{
         using adj_container_type = typename G::adj_container_type;
 
         LabelledGraph(fishnet::util::BiFunction<N,N,L> auto labelGenerator) requires std::is_default_constructible_v<G>
-            :Base(),labelGenerator(std::move(labelGenerator)){};
+            :Base(),labelGenerator(std::move(labelGenerator)){}
 
         LabelledGraph(G && source, fishnet::util::BiFunction<N,N,L> auto labelGenerator)
             :Base(std::move(source)),labelGenerator(std::move(labelGenerator)){
                 edges = fishnet::util::toUnorderedSet(
                     Base::getEdges() | std::views::transform([this](const E & e){return this->makeEdge(e.getFrom(),e.getTo());})
                 );
-            };
+            }
 
         template<Node FromType, Node ToType> requires std::constructible_from<N,FromType> && std::constructible_from<N,ToType>
         bool addEdge(FromType && from, ToType && to){
