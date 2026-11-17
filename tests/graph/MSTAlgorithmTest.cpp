@@ -126,6 +126,31 @@ TEST_F(MSTAlgorithmTest, MoveOnlyAdjacency) {
     EXPECT_FALSE(mst.containsEdge(b,c));
 }
 
+TEST_F(MSTAlgorithmTest, WeightedGraphKeepsWeights) {
+    // weights deliberately differ from the euclidean distance: a-b is expensive, so the MST must avoid it
+    auto weighted = WeightedGraph(fishnet::graph::UndirectedGraph<XYNode>(), DistanceFunction());
+    weighted.addEdge(weighted.makeEdge(a,b,100.0));
+    weighted.addEdge(weighted.makeEdge(b,c,1.0));
+    weighted.addEdge(weighted.makeEdge(a,c,2.0));
+    auto mstOpt = MST::kruskal(std::move(weighted));
+    ASSERT_VALUE(mstOpt);
+    auto & mst = mstOpt.value();
+    EXPECT_SIZE(mst.getEdges(), 2);
+    EXPECT_FALSE(mst.containsEdge(a,b));
+    for(const auto & edge : mst.getEdges()) {
+        double expected = mst.makeEdge(edge.getFrom(), edge.getTo()) == mst.makeEdge(b,c) ? 1.0 : 2.0;
+        EXPECT_DOUBLE_EQ(edge.getLabel(), expected); // weights are kept, not recomputed
+    }
+}
+
+TEST_F(MSTAlgorithmTest, WeightFunctionCalledOncePerEdge) {
+    int calls = 0;
+    auto countingDistance = [&calls](const XYNode & n1, const XYNode & n2){ ++calls; return n1.distanceTo(n2); };
+    auto mstOpt = MST::kruskal(squareGraph, countingDistance);
+    ASSERT_VALUE(mstOpt);
+    EXPECT_EQ(calls, 5); // 5 edges, each weight computed once
+}
+
 TEST_F(MSTAlgorithmTest, DisconnectedGraphReturnsNullopt) {
     auto mstOpt = MST::kruskal(disconnectedGraph, DistanceFunction());
     EXPECT_EMPTY(mstOpt);
