@@ -19,7 +19,12 @@ using DistanceFunction = std::function<fishnet::math::DEFAULT_FLOATING_POINT(con
 static DistanceFunction distanceFunctionForSpatialReference(const OGRSpatialReference & spatialRef) {
     if(spatialRef.IsEmpty())
         throw std::runtime_error("No distance function available for empty coordinate system");
-    if(spatialRef.IsLocal() || spatialRef.IsProjected())
+    // Projected coordinates (e.g. UTM northings around 1e7) carry rounding errors of about 1e-9, far above
+    // fishnet::math::EPSILON (1e-12), so geometric predicates like Segment::contains reject computed points.
+    // Unsupported until the tolerance scales with the coordinates; reproject to WGS84 (EPSG:4326) instead.
+    if(spatialRef.IsProjected())
+        throw std::runtime_error("Projected coordinate systems are not supported yet (\""+std::string(spatialRef.GetName())+"\"): reproject the input to WGS84 (EPSG:4326)");
+    if(spatialRef.IsLocal())
         return MetricDistance();
     if(spatialRef.IsGeographic())
         return WGS84Distance();

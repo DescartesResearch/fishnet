@@ -8,19 +8,22 @@
 namespace fishnet::geometry {
 
 /**
- * @brief Compute the point on the segment, closest to the query point
- * 
- * @param segment 
- * @param point 
+ * @brief Compute the point on the segment, closest to the query point:
+ * the projection of the point onto the segment's line, clamped to the segment.
+ * lambda = dot(point - p, dir) / |dir|² is the position of the projection (0 at p, 1 at q); outside
+ * [0,1] the nearer endpoint is the closest point, which is what clamping lambda selects (hot path).
+ *
+ * @param segment
+ * @param point
  * @return
  */
 static Vec2DReal closestPointOnSegment(ISegment auto const & segment, IPoint auto const & point) noexcept {
-        auto orthogonal = segment.direction().orthogonal();
-        auto line = Line(point,point+orthogonal);
-        auto intersection = segment.intersection(line); // intersection with the orthogonal line from the segment to the point
-        if(intersection)
-            return intersection.value(); // return intersection with orthogonal line trough point if present
-        return segment.p().distance(point) < segment.q().distance(point)? segment.p():segment.q(); // return endpoint of segment closest to point
+        auto dir = segment.direction();
+        auto position = __impl::PointOnLinePosition(segment.p(), dir, point);
+        if(position.squaredLength == 0) // 0-length segment
+            return segment.p();
+        auto lambda = std::clamp(position.dot / position.squaredLength, 0.0, 1.0);
+        return segment.p() + dir * lambda;
 }
 
 

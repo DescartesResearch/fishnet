@@ -5,6 +5,7 @@
 #include "Vec2D.hpp"
 
 namespace fishnet::geometry{
+
 /**
  * @brief Implementation of a line
  * 
@@ -136,17 +137,11 @@ public:
     }
 
     constexpr bool contains(IPoint auto const & point) const noexcept{
-        using FLOAT_TYPE = fishnet::math::DEFAULT_FLOATING_POINT;
-        auto dir = direction();
-        if(dir.x == 0) { // line is vertical
-            return point.x == _p.x; //or _q.x
-        }
-        if(dir.y == 0){ // line is horizontal
-            return point.y == _p.y;
-        }
-        FLOAT_TYPE lX = FLOAT_TYPE(point.x - this->_p.x) / FLOAT_TYPE(dir.x);
-        FLOAT_TYPE lY = FLOAT_TYPE(point.y - this->_p.y) / FLOAT_TYPE(dir.y);
-        return fabs(lX-lY) < fishnet::math::EPSILON;
+        if(__impl::PointOnLinePosition(_p, direction(), point).isOnLine())
+            return true;
+        // Only checked on rejection (hot path): points equal to p or q per Vec2D::operator==, which
+        // allows up to EPSILON per coordinate. Also covers a degenerate line through a single point.
+        return _p == point or _q == point;
     }
 
     constexpr bool isLeft(IPoint auto const & point) const noexcept {
@@ -165,15 +160,10 @@ public:
         return intersect(*this,other);
     }
 
+    /// Equal if parallel and a point of the other line lies on this line
     template<fishnet::math::Number U>
     constexpr bool operator==(const Line<U> & other) const noexcept {
-        if(this->isParallel(other)){
-            [[unlikely]] if (isVertical()){ //other must also be vertical since both are parallel
-                return this->_p.x == other.p().x;
-            }
-            return fabs(yIntercept().value() - other.yIntercept().value()) < fishnet::math::EPSILON;
-        }
-        return false;
+        return this->isParallel(other) and this->contains(other.p());
     }
 
     constexpr fishnet::Option<Vec2DReal> intersection(LinearGeometry auto const& other) const noexcept {

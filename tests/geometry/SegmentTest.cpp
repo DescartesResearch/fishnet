@@ -208,3 +208,35 @@ TEST(SegmentTest, containsPointWhichEqualsAnEndpoint){
     ASSERT_EQ(justPastRight, horizontal.q());
     EXPECT_TRUE(horizontal.contains(justPastRight));
 }
+
+// ~15 m building edge in lon/lat
+TEST(SegmentTest, ContainsPointOnShortLonLatSegment) {
+    Segment<double> seg(Vec2DReal(39.2218724, -6.8284641), Vec2DReal(39.2219653, -6.8285636));
+    EXPECT_TRUE(seg.contains(Vec2DReal(39.2219008469421, -6.828494567930446)));
+}
+
+TEST(SegmentTest, DoesNotContainPointNextToShortLonLatSegment) {
+    Segment<double> seg(Vec2DReal(39.2218724, -6.8284641), Vec2DReal(39.2219653, -6.8285636));
+    Vec2DReal foot(39.2219008469421, -6.828494567930446);
+    EXPECT_FALSE(seg.contains(foot + Vec2DReal(1e-9, 0)));   // ~0.1 mm beside
+    EXPECT_FALSE(seg.contains(Vec2DReal(39.2219653, -6.8285636) + (Vec2DReal(39.2219653, -6.8285636) - Vec2DReal(39.2218724, -6.8284641)) * 1e-6)); // just past q
+}
+
+// endpoints equal per Vec2D::operator==
+TEST(SegmentTest, ContainsOnSegmentShorterThanEpsilon) {
+    Segment<double> tiny(Vec2DReal(39.28, -6.8), Vec2DReal(39.28 + 1e-13, -6.8));
+    EXPECT_TRUE(tiny.contains(Vec2DReal(39.28, -6.8)));
+    EXPECT_FALSE(tiny.contains(Vec2DReal(39.29, -6.8)));
+}
+
+// ~1 m edges in lon/lat crossing at 0.3 degrees were treated as parallel, so the crossing was missed
+TEST(SegmentTest, IntersectsNearlyParallelShortLonLatSegment) {
+    double angle = 0.3 * PI / 180;
+    Vec2DReal mid {39.280005, -6.8};
+    Vec2DReal half {5e-6 * std::cos(angle), 5e-6 * std::sin(angle)};
+    Segment<double> a {Vec2DReal(39.28, -6.8), Vec2DReal(39.28001, -6.8)};
+    Segment<double> b {mid - half, mid + half};
+    ASSERT_TRUE(a.intersects(b));
+    EXPECT_NEAR(a.intersection(b).value().x, mid.x, 1e-12);
+    EXPECT_NEAR(a.intersection(b).value().y, mid.y, 1e-12);
+}

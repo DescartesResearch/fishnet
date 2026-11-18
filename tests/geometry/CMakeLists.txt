@@ -5,6 +5,7 @@ add_executable(${GeometryTestBin}
 Vec2DTest.cpp
 LineTest.cpp
 SegmentTest.cpp
+PolygonDistanceTest.cpp
 RayTest.cpp
 RingTest.cpp
 SimplePolygonTest.cpp

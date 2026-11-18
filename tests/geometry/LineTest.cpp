@@ -139,3 +139,18 @@ TEST(LineTest, toString){
     std::cout <<"Testing Console Output: "<< l << std::endl; 
 }
 
+
+// ~15 m building edge in lon/lat
+TEST(LineTest, ContainsPointOnShortLonLatLine) {
+    auto line = Line(Vec2D(39.2218724, -6.8284641), Vec2D(39.2219653, -6.8285636));
+    EXPECT_TRUE(line.contains(Vec2D(39.2219008469421, -6.828494567930446)));
+    EXPECT_FALSE(line.contains(Vec2D(39.2219008469421 + 1e-9, -6.828494567930446)));
+}
+
+// ~15 m building edge in lon/lat: y-intercepts at x = 0 amplified rounding errors
+TEST(LineTest, EqualityShortLonLatLine) {
+    Vec2DReal p {39.2218724, -6.8284641}, dir {0.0000929, -0.0000995};
+    auto line = Line(p, p + dir);
+    EXPECT_EQ(line, Line(p + dir * 0.5, p + dir * 2.0));
+    EXPECT_NE(line, Line(p + Vec2DReal(1e-9, 0), p + dir + Vec2DReal(1e-9, 0)));   // ~0.1 mm beside
+}

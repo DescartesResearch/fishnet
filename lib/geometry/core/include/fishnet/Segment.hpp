@@ -130,28 +130,13 @@ public:
     }
 
     constexpr bool contains(IPoint auto const & point)const noexcept{
-        using FLOAT_TYPE = fishnet::math::DEFAULT_FLOATING_POINT;
-        auto EPSILON = fishnet::math::EPSILON;
-        if (not isValid()) // 0-length segment
-            return _p==point; 
-        auto dir = direction();
-        // lambda is normalised over the segment, so an absolute tolerance on it means EPSILON *
-        // length in coordinate space. On a short segment that shrinks below one ulp of the
-        // coordinates, and this would deny a point which Vec2D::operator== calls equal to the
-        // endpoint. Scaling by the direction keeps the tolerance EPSILON where the points live.
-        if(dir.x == 0){ // vertical segment
-            FLOAT_TYPE lambdaY = FLOAT_TYPE(point.y - _p.y) / FLOAT_TYPE(dir.y); // lambda has to be between in the range [0,1] and the x-Coordinates have to be approx. equal
-            FLOAT_TYPE tolerance = EPSILON / fabs(FLOAT_TYPE(dir.y));
-            return lambdaY >= 0.0 - tolerance and lambdaY <= 1.0 + tolerance and fabs(_p.x - point.x) < EPSILON;
-        }
-        if(dir.y == 0){ // horizontal segment
-            FLOAT_TYPE lambdaX = FLOAT_TYPE(point.x - _p.x) / FLOAT_TYPE(dir.x); // lambda has to be between in the range [0,1] and the y-Coordinates have to be approx. equal
-            FLOAT_TYPE tolerance = EPSILON / fabs(FLOAT_TYPE(dir.x));
-            return lambdaX >= 0.0 - tolerance and lambdaX <= 1.0 + tolerance and fabs(_p.y - point.y) < EPSILON;
-        }
-        FLOAT_TYPE lambdaX = FLOAT_TYPE(point.x - _p.x) / FLOAT_TYPE(dir.x);
-        FLOAT_TYPE lambdaY = FLOAT_TYPE(point.y - _p.y) / FLOAT_TYPE(dir.y);
-        return fabs(lambdaX - lambdaY) < EPSILON and lambdaX >= 0.0 - EPSILON and lambdaY <= 1.0 + EPSILON; // both lambdas have to be equal by definition, so checking one for the range [0,1] is sufficient 
+        // on the line through p and q, and its projection between p and q (see Line::contains)
+        auto position = __impl::PointOnLinePosition(_p, direction(), point);
+        if (position.isOnLine() and position.isBetweenEnds())
+            return true;
+        // Only checked on rejection (hot path): points equal to p or q per Vec2D::operator==, which
+        // allows up to EPSILON per coordinate. Also covers the 0-length segment (isOnLine is false).
+        return _p == point or _q == point;
     }
 
     constexpr fishnet::math::DEFAULT_FLOATING_POINT distance(IPoint auto const & point) const noexcept {
