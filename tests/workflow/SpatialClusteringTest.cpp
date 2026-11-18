@@ -98,3 +98,13 @@ TEST_F(SpatialClusteringTest, DBSCANClustering){
         clusters.push_back(reduceFunction(cluster));
     }
 }
+
+// projected coordinates (UTM northings ~1e7) round to ~1e-9, above EPSILON, so they are rejected for now
+TEST(DistanceFunctionTest, rejectsProjectedCoordinateSystems) {
+    OGRSpatialReference utm;
+    ASSERT_EQ(utm.importFromEPSG(32737), OGRERR_NONE);   // WGS 84 / UTM zone 37S (Dar es Salaam)
+    EXPECT_THROW(distanceFunctionForSpatialReference(utm), std::runtime_error);
+    OGRSpatialReference wgs84;
+    ASSERT_EQ(wgs84.importFromEPSG(4326), OGRERR_NONE);
+    EXPECT_NO_THROW(distanceFunctionForSpatialReference(wgs84));
+}
