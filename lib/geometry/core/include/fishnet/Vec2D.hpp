@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <fishnet/Concepts.hpp>
 #include <fishnet/Constants.hpp>
 #include <fishnet/Degrees.hpp>
@@ -131,13 +132,40 @@ public:
         return x * other.getY() - y * other.getX();
     }
 
+    /**
+     * @brief Parallel if, placed at a common origin, the tip of the longer vector lies within EPSILON
+     * of the line through the shorter one, i.e. both geometries deviate by less than EPSILON over their extent.
+     *
+     * |cross| = |a| * |b| * sin(angle), so a fixed bound on cross depends on both lengths: for lon/lat
+     * edges of 1e-5 degrees (about 1 m) |cross| < 1e-12 accepted angles up to 0.6 degrees as parallel.
+     * The distance of the longer tip from the other line is |cross| / min(|a|, |b|), so the check is
+     *   |cross| <= EPSILON * min(|a|, |b|)   <=>   cross² <= EPSILON² * min(|a|², |b|²)
+     * (squared to avoid a sqrt; both sides are non-negative). A zero vector is parallel to every vector.
+     */
     constexpr bool isParallel(const IPoint auto & other) const noexcept{
-        return fishnet::math::isZero(cross(other));
+        return isBelowEpsilonTimesMinLength(cross(other), other);
     }
 
+    /**
+     * @brief Orthogonal if, placed at a common origin, the tip of the longer vector lies within EPSILON
+     * of the line perpendicular to the shorter one (same scaling as isParallel, with dot instead of cross):
+     *   |dot| <= EPSILON * min(|a|, |b|)   <=>   dot² <= EPSILON² * min(|a|², |b|²)
+     * A zero vector is orthogonal to every vector.
+     */
     constexpr bool isOrthogonal(const IPoint auto & other) const noexcept{
-        return fishnet::math::isZero(dot(other));
+        return isBelowEpsilonTimesMinLength(dot(other), other);
     }
+
+private:
+    /// product² <= EPSILON² * min(|this|², |other|²), for a cross or dot product of this and other
+    constexpr bool isBelowEpsilonTimesMinLength(fishnet::math::Number auto product, const IPoint auto & other) const noexcept{
+        using FLOAT_TYPE = fishnet::math::DEFAULT_FLOATING_POINT;
+        constexpr FLOAT_TYPE squaredEpsilon = fishnet::math::EPSILON * fishnet::math::EPSILON;
+        FLOAT_TYPE squaredOtherLength = FLOAT_TYPE(other.getX()) * FLOAT_TYPE(other.getX()) + FLOAT_TYPE(other.getY()) * FLOAT_TYPE(other.getY());
+        return FLOAT_TYPE(product) * FLOAT_TYPE(product) <= squaredEpsilon * std::min(FLOAT_TYPE(dot(*this)), squaredOtherLength);
+    }
+
+public:
 
     constexpr fishnet::math::DEFAULT_FLOATING_POINT length() const{
         return sqrt(static_cast<fishnet::math::DEFAULT_FLOATING_POINT>(dot(*this)));
