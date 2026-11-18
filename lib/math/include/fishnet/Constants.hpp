@@ -17,6 +17,20 @@ namespace fishnet::math{
         else return std::numeric_limits<F>::epsilon();
     }
 
+    /**
+     * @brief Tolerance for geometric comparisons: two coordinates closer than EPSILON are equal.
+     *
+     * EPSILON is a coordinate distance, so only compare it with quantities that are lengths:
+     * coordinate differences, a perpendicular distance, a distance along a line.
+     * - Products of vectors are not lengths: cross(a, b) and dot(a, b) are length², and they shrink
+     *   with the vector lengths. Compare them with EPSILON * length, e.g. cross² <= EPSILON² * |a|².
+     * - Ratios are not lengths: a position along a segment normalised to [0,1] or a sine. Multiply
+     *   them by the length they were divided by first.
+     * Comparing those directly with EPSILON breaks silently on short geometries: in lon/lat a
+     * building edge is about 1e-4 degrees, so products and normalised values reach the size of
+     * EPSILON or of rounding errors although nothing is degenerate.
+     * See Vec2D::isParallel and __impl::PointOnLinePosition (LinearIntersection.hpp) for examples.
+     */
     constexpr static DEFAULT_FLOATING_POINT EPSILON = getDefaultEpsilon<DEFAULT_FLOATING_POINT>();
 
     template<Number T>
