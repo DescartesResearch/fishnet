@@ -160,15 +160,10 @@ public:
         return intersect(*this,other);
     }
 
+    /// Equal if parallel and a point of the other line lies on this line
     template<fishnet::math::Number U>
     constexpr bool operator==(const Line<U> & other) const noexcept {
-        if(this->isParallel(other)){
-            [[unlikely]] if (isVertical()){ //other must also be vertical since both are parallel
-                return this->_p.x == other.p().x;
-            }
-            return fabs(yIntercept().value() - other.yIntercept().value()) < fishnet::math::EPSILON;
-        }
-        return false;
+        return this->isParallel(other) and this->contains(other.p());
     }
 
     constexpr fishnet::Option<Vec2DReal> intersection(LinearGeometry auto const& other) const noexcept {
