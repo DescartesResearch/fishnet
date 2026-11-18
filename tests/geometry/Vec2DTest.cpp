@@ -170,4 +170,21 @@ TEST(Vec2DTest, LexicographicOrdering){
 }
 
 
+// ~1 m and ~10 cm edges in lon/lat: |cross| is tiny because the vectors are short, not because they are parallel
+TEST(Vec2DTest, isParallelShortLonLatVectors) {
+    double angle = 0.3 * PI / 180;
+    Vec2D a {1e-5, 0.0};
+    EXPECT_FALSE(a.isParallel(Vec2D(1e-5 * std::cos(angle), 1e-5 * std::sin(angle))));
+    EXPECT_FALSE(Vec2D(1e-6, 0.0).isParallel(Vec2D(0.0, 1e-6)));
+    EXPECT_TRUE(a.isParallel(Vec2D(3e-5, 0.0)));
+    EXPECT_TRUE(Vec2D(0.0000929, -0.0000995).isParallel(Vec2D(0.0000929, -0.0000995) * 2.5));
+}
 
+// ~1 m vectors in lon/lat: |dot| is tiny because the vectors are short
+TEST(Vec2DTest, isOrthogonalShortLonLatVectors) {
+    double angle = 89.7 * PI / 180;
+    Vec2D a {1e-5, 0.0};
+    EXPECT_FALSE(a.isOrthogonal(Vec2D(1e-5 * std::cos(angle), 1e-5 * std::sin(angle))));
+    EXPECT_TRUE(a.isOrthogonal(Vec2D(0.0, 3e-5)));
+    EXPECT_TRUE(Vec2D(0.0000929, -0.0000995).isOrthogonal(Vec2D(0.0000929, -0.0000995).orthogonal()));
+}

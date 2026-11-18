@@ -228,3 +228,15 @@ TEST(SegmentTest, ContainsOnSegmentShorterThanEpsilon) {
     EXPECT_TRUE(tiny.contains(Vec2DReal(39.28, -6.8)));
     EXPECT_FALSE(tiny.contains(Vec2DReal(39.29, -6.8)));
 }
+
+// ~1 m edges in lon/lat crossing at 0.3 degrees were treated as parallel, so the crossing was missed
+TEST(SegmentTest, IntersectsNearlyParallelShortLonLatSegment) {
+    double angle = 0.3 * PI / 180;
+    Vec2DReal mid {39.280005, -6.8};
+    Vec2DReal half {5e-6 * std::cos(angle), 5e-6 * std::sin(angle)};
+    Segment<double> a {Vec2DReal(39.28, -6.8), Vec2DReal(39.28001, -6.8)};
+    Segment<double> b {mid - half, mid + half};
+    ASSERT_TRUE(a.intersects(b));
+    EXPECT_NEAR(a.intersection(b).value().x, mid.x, 1e-12);
+    EXPECT_NEAR(a.intersection(b).value().y, mid.y, 1e-12);
+}
