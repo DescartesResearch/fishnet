@@ -74,18 +74,13 @@ public:
     }
 
     constexpr bool contains(IPoint auto const & point) const noexcept{
-        using FLOAT_TYPE = fishnet::math::DEFAULT_FLOATING_POINT;
-        if(point==originPoint) 
+        // on the line through the origin, and its projection not behind the origin (see Line::contains)
+        auto position = __impl::PointOnLinePosition(originPoint, directionVector, point);
+        if(position.isOnLine() and position.isNotBeforeStart())
             return true;
-        if(directionVector.x == 0){ // vertical ray -> point is on ray if its on the origin or above/below depending on the direction vector
-            return fishnet::math::areEqual(point.x,originPoint.x) and (directionVector.y > 0 ? point.y > originPoint.y : point.y < originPoint.y);
-        }
-        if(directionVector.y == 0){ // horizontal ray -> point is on ray if its on the origin or left/right depending on the direction vector
-            return fishnet::math::areEqual(point.y,originPoint.y) and (directionVector.x > 0 ? point.x > originPoint.x : point.x < originPoint.x);
-        }
-        FLOAT_TYPE lX = FLOAT_TYPE(point.x - originPoint.x) / FLOAT_TYPE(directionVector.x);
-        FLOAT_TYPE lY = FLOAT_TYPE(point.y - originPoint.y) / FLOAT_TYPE(directionVector.y);
-        return fishnet::math::areEqual(lX,lY) and (lX > 0); // lambda values have to equal and positive to be on the correct side of the direction vector
+        // Only checked on rejection (hot path): points equal to the origin per Vec2D::operator==,
+        // which allows up to EPSILON per coordinate.
+        return point == originPoint;
     }
 
     template<fishnet::math::Number U> 

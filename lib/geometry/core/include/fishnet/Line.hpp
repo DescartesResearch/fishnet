@@ -5,6 +5,7 @@
 #include "Vec2D.hpp"
 
 namespace fishnet::geometry{
+
 /**
  * @brief Implementation of a line
  * 
@@ -136,17 +137,11 @@ public:
     }
 
     constexpr bool contains(IPoint auto const & point) const noexcept{
-        using FLOAT_TYPE = fishnet::math::DEFAULT_FLOATING_POINT;
-        auto dir = direction();
-        if(dir.x == 0) { // line is vertical
-            return point.x == _p.x; //or _q.x
-        }
-        if(dir.y == 0){ // line is horizontal
-            return point.y == _p.y;
-        }
-        FLOAT_TYPE lX = FLOAT_TYPE(point.x - this->_p.x) / FLOAT_TYPE(dir.x);
-        FLOAT_TYPE lY = FLOAT_TYPE(point.y - this->_p.y) / FLOAT_TYPE(dir.y);
-        return fabs(lX-lY) < fishnet::math::EPSILON;
+        if(__impl::PointOnLinePosition(_p, direction(), point).isOnLine())
+            return true;
+        // Only checked on rejection (hot path): points equal to p or q per Vec2D::operator==, which
+        // allows up to EPSILON per coordinate. Also covers a degenerate line through a single point.
+        return _p == point or _q == point;
     }
 
     constexpr bool isLeft(IPoint auto const & point) const noexcept {

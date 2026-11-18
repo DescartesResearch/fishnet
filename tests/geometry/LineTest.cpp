@@ -139,3 +139,10 @@ TEST(LineTest, toString){
     std::cout <<"Testing Console Output: "<< l << std::endl; 
 }
 
+
+// ~15 m building edge in lon/lat
+TEST(LineTest, ContainsPointOnShortLonLatLine) {
+    auto line = Line(Vec2D(39.2218724, -6.8284641), Vec2D(39.2219653, -6.8285636));
+    EXPECT_TRUE(line.contains(Vec2D(39.2219008469421, -6.828494567930446)));
+    EXPECT_FALSE(line.contains(Vec2D(39.2219008469421 + 1e-9, -6.828494567930446)));
+}

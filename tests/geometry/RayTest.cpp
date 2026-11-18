@@ -124,3 +124,12 @@ TEST(RayTest, toString){
     EXPECT_EQ(r.toString(),"Ray (-1,1) + k * (1,1)");
     std::cout << "Testing Console Output: " << r << std::endl;
 }
+// ~15 m building edge in lon/lat
+TEST(RayTest, ContainsPointOnShortLonLatRay) {
+    Ray<double> ray {Vec2DReal(39.2218724, -6.8284641), Vec2DReal(0.0000929, -0.0000995)};
+    Vec2DReal foot(39.2219008469421, -6.828494567930446);
+    EXPECT_TRUE(ray.contains(foot));
+    EXPECT_TRUE(ray.contains(Vec2DReal(39.2218724, -6.8284641) + Vec2DReal(0.0000929, -0.0000995) * 3.0));
+    EXPECT_FALSE(ray.contains(foot + Vec2DReal(1e-9, 0)));   // ~0.1 mm beside
+    EXPECT_FALSE(ray.contains(Vec2DReal(39.2218724, -6.8284641) - Vec2DReal(0.0000929, -0.0000995) * 1e-6)); // just behind the origin
+}
